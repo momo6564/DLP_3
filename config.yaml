@@ -1,0 +1,52 @@
+# Single place to change the knobs. Every starter script reads this file.
+# All three questions are compulsory. If you are short on compute, lower img_size /
+# epochs / max_images first, and say in the report what you changed.
+
+paths:
+  data_root: ./data            # datasets are downloaded here
+  runs_root: ./runs            # checkpoints, logs, figures
+
+seed: 42
+
+# ---------------------------------------------------------------- Q1: detection
+q1_detection:
+  classes: [person, car, dog, cat, bicycle]   # 5-class VOC2007 subset
+  max_images: 2500             # cap on the converted split, so each detector stays near
+                               # 25 min on a T4. 0 = keep every matching image (~5-6k,
+                               # roughly three times the training time).
+  img_size: 640
+  yolo:
+    model: yolov8n.pt
+    epochs: 25
+    batch_size: 16
+  faster_rcnn:
+    epochs: 8
+    batch_size: 4
+    lr: 0.005
+
+# ------------------------------------------------------------- Q2: segmentation
+q2_segmentation:
+  dataset: oxford_pet_trimap   # 3 classes: pet, background, boundary
+  model: unet                  # unet (smp) | deeplabv3_resnet50 (torchvision)
+  encoder: resnet34            # smp encoder name, ImageNet-pretrained
+  img_size: 256
+  batch_size: 8
+  epochs: 12
+  lr: 0.0003
+  freeze_encoder: false        # flip to true for the frozen-encoder ablation
+
+# --------------------------------------------------------- Q3: RNNs and LSTMs
+q3_sequence:
+  dataset: imdb                # 25k train / 25k test movie reviews, binary sentiment
+  cell: lstm                   # rnn | lstm | gru
+  vocab_size: 20000
+  max_len: 200                 # truncation length; the Q3.3 study sweeps 50 / 200 / 500
+  embed_dim: 100
+  hidden_size: 128
+  num_layers: 1
+  bidirectional: false
+  dropout: 0.3
+  batch_size: 64
+  epochs: 4
+  lr: 0.001
+  clip_grad: 5.0               # set to 0 to disable, for the exploding-gradient question
